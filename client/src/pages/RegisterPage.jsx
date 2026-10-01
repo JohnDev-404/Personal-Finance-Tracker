@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import FormField from '../components/FormField';
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -8,25 +9,33 @@ export default function RegisterPage() {
 
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
-  const [issues, setIssues] = useState([]);
+  const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
   function handleChange(e) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    setFieldErrors((fe) => ({ ...fe, [e.target.name]: undefined }));
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
-    setIssues([]);
+    setFieldErrors({});
     setSubmitting(true);
     try {
       await register(form);
       navigate('/', { replace: true });
     } catch (err) {
       const data = err.response?.data;
-      setError(data?.error || 'Registration failed');
-      setIssues(data?.issues || []);
+      if (data?.issues) {
+        const map = {};
+        for (const issue of data.issues) {
+          map[issue.path] = issue.message;
+        }
+        setFieldErrors(map);
+      } else {
+        setError(data?.error || 'Registration failed');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -41,53 +50,41 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div className="rounded-md bg-red-500/10 border border-red-500/30 text-red-300 text-sm px-3 py-2">
-              <div>{error}</div>
-              {issues.length > 0 && (
-                <ul className="mt-1 list-disc list-inside text-red-200/80">
-                  {issues.map((i) => (
-                    <li key={i.path}>{i.message}</li>
-                  ))}
-                </ul>
-              )}
+              {error}
             </div>
           )}
-          <div>
-            <label className="block text-sm text-slate-300 mb-1">Name</label>
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              required
-              autoComplete="name"
-              className="w-full rounded-md bg-slate-900 border border-slate-700 px-3 py-2 text-slate-100 focus:outline-none focus:border-emerald-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-slate-300 mb-1">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              required
-              autoComplete="email"
-              className="w-full rounded-md bg-slate-900 border border-slate-700 px-3 py-2 text-slate-100 focus:outline-none focus:border-emerald-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-slate-300 mb-1">Password</label>
-            <input
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              required
-              minLength={8}
-              autoComplete="new-password"
-              className="w-full rounded-md bg-slate-900 border border-slate-700 px-3 py-2 text-slate-100 focus:outline-none focus:border-emerald-500"
-            />
-          </div>
+
+          <FormField
+            label="Name"
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            error={fieldErrors.name}
+            autoComplete="name"
+            required
+          />
+          <FormField
+            label="Email"
+            name="email"
+            type="email"
+            value={form.email}
+            onChange={handleChange}
+            error={fieldErrors.email}
+            autoComplete="email"
+            required
+          />
+          <FormField
+            label="Password"
+            name="password"
+            type="password"
+            value={form.password}
+            onChange={handleChange}
+            error={fieldErrors.password}
+            autoComplete="new-password"
+            required
+            minLength={8}
+          />
+
           <button
             type="submit"
             disabled={submitting}
@@ -96,6 +93,7 @@ export default function RegisterPage() {
             {submitting ? 'Creating…' : 'Create account'}
           </button>
         </form>
+
         <p className="text-sm text-slate-400 text-center mt-6">
           Already have an account?{' '}
           <Link to="/login" className="text-emerald-400 hover:underline">

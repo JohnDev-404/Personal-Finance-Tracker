@@ -20,18 +20,20 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
-// Global response handling: on 401, clear token and bounce to login.
+// Global response handling: on 401, clear token and bounce to login with a reason.
 client.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    const onAuthPage =
+      window.location.pathname.startsWith('/login') ||
+      window.location.pathname.startsWith('/register');
+
+    if (status === 401 && !onAuthPage) {
       localStorage.removeItem('token');
-      // Only redirect if we're not already on an auth page — avoids loops.
-      if (!window.location.pathname.startsWith('/login') &&
-          !window.location.pathname.startsWith('/register')) {
-        window.location.href = '/login';
-      }
+      window.location.href = '/login?expired=1';
     }
+
     return Promise.reject(error);
   }
 );

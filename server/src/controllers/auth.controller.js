@@ -27,4 +27,12 @@ async function me(req, res, next) {
   }
 }
 
-module.exports = { register, login, me };
+// JWTs are stateless — the server holds no session to destroy.
+// This endpoint exists so the client has an explicit action, and returns 204.
+// A real production app would require a token blacklist or refresh-token flow
+// to actually invalidate the token before its expiry.
+async function logout(req, res) {
+  res.status(204).send();
+}
+
+module.exports = { register, login, me, logout };

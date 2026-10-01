@@ -8,13 +8,16 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [loading, setLoading] = useState(Boolean(localStorage.getItem('token')));
 
-  // On mount, if we have a token, fetch the current user to validate it.
+  // On mount (or whenever the token changes), validate it by fetching the user.
   useEffect(() => {
     if (!token) {
       setLoading(false);
       return;
     }
+
     let cancelled = false;
+    setLoading(true);
+
     authApi
       .me()
       .then((data) => {
@@ -30,6 +33,7 @@ export function AuthProvider({ children }) {
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
+
     return () => {
       cancelled = true;
     };
@@ -51,7 +55,8 @@ export function AuthProvider({ children }) {
     return data;
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    await authApi.logout(); // best-effort server call
     localStorage.removeItem('token');
     setToken(null);
     setUser(null);

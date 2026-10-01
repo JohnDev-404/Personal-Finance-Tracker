@@ -14,3 +14,12 @@ export async function me() {
   const res = await client.get('/auth/me');
   return res.data;
 }
+
+export async function logout() {
+  // Best-effort. Even if the network call fails, we still clear local state.
+  try {
+    await client.post('/auth/logout');
+  } catch {
+    // Ignore — server-side JWT invalidation is a no-op anyway.
+  }
+}
