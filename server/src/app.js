@@ -3,6 +3,8 @@ const cors = require('cors');
 
 const env = require('./config/env');
 const authRoutes = require('./routes/auth.routes');
+const categoryRoutes = require('./routes/category.routes');
+const transactionRoutes = require('./routes/transaction.routes');
 const { errorHandler } = require('./middleware/error.middleware');
 
 const app = express();
@@ -15,13 +17,13 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/transactions', transactionRoutes);
 
-// 404 for any /api route not matched above
 app.use('/api', (req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
-// Error handler must be registered LAST.
 app.use(errorHandler);
 
 module.exports = app;
