@@ -1,8 +1,7 @@
-// Loads .env once and exposes typed-ish config to the rest of the app.
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 
-const required = ['PORT', 'CLIENT_URL'];
+const required = ['PORT', 'CLIENT_URL', 'DATABASE_URL', 'JWT_SECRET'];
 for (const key of required) {
   if (!process.env[key]) {
     throw new Error(`Missing required env var: ${key}`);
