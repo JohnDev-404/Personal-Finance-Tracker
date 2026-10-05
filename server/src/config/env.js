@@ -1,5 +1,10 @@
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
+
+// Load the right .env file based on NODE_ENV.
+// In tests, Prisma's `migrate deploy` and the runtime both need to see the
+// test database URL, so we load .env.test *before* anything else reads process.env.
+const envFile = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
+require('dotenv').config({ path: path.resolve(__dirname, `../../${envFile}`) });
 
 const required = ['PORT', 'CLIENT_URL', 'DATABASE_URL', 'JWT_SECRET'];
 for (const key of required) {
