@@ -2,87 +2,51 @@ import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 /* ================================================================== */
-/*  PERIOD OPTIONS                                                     */
-/*  Grouped so the dropdown can render sections. Adding a new option   */
-/*  means: add it here, add a case in computeRange below.              */
+/*  PERIODS — internal only (not exported)                             */
 /* ================================================================== */
-export const PERIOD_OPTIONS = [
-  { id: 'today',     label: 'Today',       group: 'Short' },
-  { id: 'week',      label: 'This Week',   group: 'Short' },
-  { id: 'month',     label: 'This Month',  group: 'Short' },
-  { id: 'lastMonth', label: 'Last Month',  group: 'Short' },
-  { id: '3m',        label: '3 Months',    group: 'Medium' },
-  { id: '6m',        label: '6 Months',    group: 'Medium' },
-  { id: 'year',      label: 'This Year',   group: 'Medium' },
-  { id: 'lastYear',  label: 'Last Year',   group: 'Long' },
-  { id: '2y',        label: '2 Years',     group: 'Long' },
-  { id: 'all',       label: 'All Time',    group: 'Long' },
-  { id: 'custom',    label: 'Custom…',     group: 'Custom' },
+const PERIODS = [
+  { id: 'today',     label: 'Today',         group: 'Recent' },
+  { id: 'week',      label: 'This Week',     group: 'Recent' },
+  { id: 'month',     label: 'This Month',    group: 'Recent' },
+  { id: 'lastMonth', label: 'Last Month',    group: 'Recent' },
+  { id: '3m',        label: 'Last 3 Months', group: 'Extended' },
+  { id: '6m',        label: 'Last 6 Months', group: 'Extended' },
+  { id: 'year',      label: 'This Year',     group: 'Extended' },
+  { id: 'lastYear',  label: 'Last Year',     group: 'Extended' },
+  { id: '2y',        label: 'Last 2 Years',  group: 'Extended' },
+  { id: 'all',       label: 'All Time',      group: 'Extended' },
+  { id: 'custom',    label: 'Custom Range',  group: 'Custom' },
 ];
 
 /* ================================================================== */
 /*  DATE HELPERS                                                       */
-/*  All dates are returned as full ISO datetime strings so any backend */
-/*  that accepts `from`/`to` query params gets a valid Date.           */
 /* ================================================================== */
+const isoStart = (d) =>
+  new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0).toISOString();
+const isoEnd = (d) =>
+  new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999).toISOString();
 
-/** ISO datetime starting at 00:00:00.000 local time */
-function isoStart(d) {
-  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
-  return x.toISOString();
-}
-
-/** ISO datetime ending at 23:59:59.999 local time */
-function isoEnd(d) {
-  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
-  return x.toISOString();
-}
-
-/** Monday-first week start (local time) */
 function startOfWeek(d) {
-  const day = d.getDay();               // 0 Sun .. 6 Sat
-  const diff = day === 0 ? 6 : day - 1; // shift so Monday = 0
+  const day = d.getDay();
+  const diff = day === 0 ? 6 : day - 1;
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() - diff);
 }
-
 function addMonths(d, n) {
   const out = new Date(d);
   out.setMonth(out.getMonth() + n);
   return out;
 }
 
-/* ================================================================== */
-/*  computeRange — SINGLE SOURCE OF TRUTH for range across the app     */
-/*                                                                     */
-/*  Signature:                                                         */
-/*    computeRange(periodId, custom = { from, to })                    */
-/*                                                                     */
-/*  Returns:                                                           */
-/*    { from, to, label }                                              */
-/*      from  : ISO datetime string, or null (All time)                */
-/*      to    : ISO datetime string, or null (All time)                */
-/*      label : human-readable name for UI                             */
-/* ================================================================== */
 export function computeRange(period, custom = {}) {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   switch (period) {
     case 'today':
-      return {
-        from: isoStart(today),
-        to: isoEnd(today),
-        label: 'Today',
-      };
+      return { from: isoStart(today), to: isoEnd(today), label: 'Today' };
 
-    case 'week': {
-      const from = startOfWeek(now);
-      return {
-        from: isoStart(from),
-        to: isoEnd(today),
-        label: 'This week',
-      };
-    }
+    case 'week':
+      return { from: isoStart(startOfWeek(now)), to: isoEnd(today), label: 'This week' };
 
     case 'month':
       return {
@@ -138,8 +102,6 @@ export function computeRange(period, custom = {}) {
       };
 
     case 'all':
-      // nulls tell the API "no filter" — the useDashboard hook skips
-      // these params entirely so the backend returns everything.
       return { from: null, to: null, label: 'All time' };
 
     case 'custom': {
@@ -163,30 +125,25 @@ export function computeRange(period, custom = {}) {
 /* ================================================================== */
 /*  ICONS                                                              */
 /* ================================================================== */
-const Icon = {
-  Calendar: (p) => (
-    <svg width="13" height="13" viewBox="0 0 14 14" fill="none" {...p}>
-      <rect x="2" y="3" width="10" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
-      <path d="M2 5.5h10M5 2v2M9 2v2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-    </svg>
-  ),
-  Chevron: (p) => (
-    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" {...p}>
-      <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  ),
-  Check: (p) => (
-    <svg width="12" height="12" viewBox="0 0 14 14" fill="none" {...p}>
-      <path d="M3 7.3l2.7 2.7L11 4.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  ),
-};
-
-/* Chips shown inline next to the trigger on desktop */
-const QUICK_SHORTCUTS = ['today', 'week', 'month', 'lastMonth', '3m', '6m'];
+const CalendarIcon = (p) => (
+  <svg width="13" height="13" viewBox="0 0 14 14" fill="none" {...p}>
+    <rect x="2" y="3" width="10" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
+    <path d="M2 5.5h10M5 2v2M9 2v2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+  </svg>
+);
+const ChevronIcon = (p) => (
+  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" {...p}>
+    <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+const CheckIcon = (p) => (
+  <svg width="12" height="12" viewBox="0 0 14 14" fill="none" {...p}>
+    <path d="M3 7.3l2.7 2.7L11 4.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
 
 /* ================================================================== */
-/*  PERIOD SELECTOR COMPONENT                                          */
+/*  COMPONENT                                                          */
 /* ================================================================== */
 export default function PeriodSelector({
   value,
@@ -198,19 +155,27 @@ export default function PeriodSelector({
   const wrapRef = useRef(null);
 
   const active = useMemo(
-    () => PERIOD_OPTIONS.find((o) => o.id === value) || PERIOD_OPTIONS[2],
+    () => PERIODS.find((o) => o.id === value) || PERIODS[2],
     [value]
   );
 
-  /* Outside click + Escape */
+  // Group for the dropdown
+  const grouped = useMemo(() => {
+    const map = new Map();
+    for (const opt of PERIODS) {
+      if (!map.has(opt.group)) map.set(opt.group, []);
+      map.get(opt.group).push(opt);
+    }
+    return Array.from(map.entries());
+  }, []);
+
+  // Close on outside click / Escape
   useEffect(() => {
     if (!open) return;
     const onDoc = (e) => {
       if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
     };
-    const onKey = (e) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
+    const onKey = (e) => e.key === 'Escape' && setOpen(false);
     document.addEventListener('mousedown', onDoc);
     window.addEventListener('keydown', onKey);
     return () => {
@@ -227,139 +192,120 @@ export default function PeriodSelector({
     [onChange]
   );
 
-  /* Group options for the dropdown */
-  const grouped = useMemo(() => {
-    const map = new Map();
-    for (const opt of PERIOD_OPTIONS) {
-      if (!map.has(opt.group)) map.set(opt.group, []);
-      map.get(opt.group).push(opt);
-    }
-    return Array.from(map.entries());
-  }, []);
-
   return (
-    <div ref={wrapRef} className="relative">
+    <div ref={wrapRef} className="relative w-full sm:w-auto">
       {/* ==================== TRIGGER ==================== */}
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className="group inline-flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-medium text-slate-200 backdrop-blur-xl transition-colors hover:border-gold-400/40 hover:bg-white/[0.07]"
+        className="
+          inline-flex w-full items-center justify-between gap-2
+          rounded-xl border border-white/10 bg-white/[0.04]
+          px-3.5 py-2.5 text-xs font-medium text-slate-200
+          backdrop-blur-xl transition-colors
+          hover:border-emerald-400/40 hover:bg-white/[0.07]
+          sm:w-auto sm:justify-start
+        "
       >
-        <span className="text-gold-300">
-          <Icon.Calendar />
+        <span className="flex items-center gap-2 min-w-0">
+          <span className="shrink-0 text-emerald-400">
+            <CalendarIcon />
+          </span>
+          <span className="truncate">{active.label}</span>
         </span>
-        <span className="hidden sm:inline">{active.label}</span>
-        <span className="sm:hidden">Range</span>
-        <Icon.Chevron
-          className={`text-slate-500 transition-transform ${open ? 'rotate-180' : ''}`}
+        <ChevronIcon
+          className={`shrink-0 text-slate-500 transition-transform ${
+            open ? 'rotate-180' : ''
+          }`}
         />
       </button>
-
-      {/* ==================== QUICK CHIPS (desktop) ==================== */}
-      <div className="ml-2 hidden items-center gap-1.5 lg:inline-flex">
-        {QUICK_SHORTCUTS.map((id) => {
-          const opt = PERIOD_OPTIONS.find((o) => o.id === id);
-          if (!opt) return null;
-          const isActive = value === id;
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => pick(id)}
-              className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition-all active:scale-[0.97] ${
-                isActive
-                  ? 'border-gold-400/40 bg-gold-400/15 text-gold-100 shadow-[0_4px_14px_-6px_rgba(232,194,86,0.6)]'
-                  : 'border-white/10 bg-white/[0.02] text-slate-400 hover:border-white/20 hover:text-slate-200'
-              }`}
-            >
-              {opt.label}
-            </button>
-          );
-        })}
-      </div>
 
       {/* ==================== DROPDOWN ==================== */}
       <AnimatePresence>
         {open && (
           <motion.div
             role="listbox"
-            initial={{ opacity: 0, y: -6, scale: 0.97 }}
+            initial={{ opacity: 0, y: -6, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6, scale: 0.97 }}
-            transition={{ duration: 0.16, ease: 'easeOut' }}
-            className="absolute right-0 z-40 mt-2 w-72 overflow-hidden rounded-2xl border border-white/10 bg-[#0a0f0d]/98 p-1.5 shadow-[0_28px_80px_-20px_rgba(0,0,0,0.95)] backdrop-blur-2xl"
+            exit={{ opacity: 0, y: -6, scale: 0.98 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="
+              absolute left-0 right-0 z-40 mt-2
+              max-h-[70vh] overflow-y-auto
+              rounded-2xl border border-white/10 bg-[#0a0f0d]/98 p-1.5
+              shadow-[0_28px_80px_-20px_rgba(0,0,0,0.95)] backdrop-blur-2xl
+              sm:left-auto sm:right-0 sm:w-64
+            "
           >
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold-300/40 to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-300/40 to-transparent" />
 
-            <div className="max-h-[22rem] overflow-y-auto">
-              {grouped.map(([group, items]) => (
-                <div key={group} className="mb-1 last:mb-0">
-                  <p className="px-2.5 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-600">
-                    {group}
-                  </p>
+            {grouped.map(([group, items]) => (
+              <div key={group} className="mb-1 last:mb-0">
+                <p className="px-2.5 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-600">
+                  {group}
+                </p>
 
-                  {items.map((opt) => {
-                    const isActive = value === opt.id;
-                    const isCustom = opt.id === 'custom';
-                    return (
-                      <div key={opt.id}>
-                        <button
-                          type="button"
-                          onClick={() => pick(opt.id)}
-                          className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
-                            isActive
-                              ? 'bg-emerald-400/10 text-emerald-200'
-                              : 'text-slate-300 hover:bg-white/[0.05] hover:text-white'
-                          }`}
+                {items.map((opt) => {
+                  const isActive = value === opt.id;
+                  const isCustom = opt.id === 'custom';
+
+                  return (
+                    <div key={opt.id}>
+                      <button
+                        type="button"
+                        onClick={() => pick(opt.id)}
+                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
+                          isActive
+                            ? 'bg-emerald-400/10 text-emerald-200'
+                            : 'text-slate-300 hover:bg-white/[0.05] hover:text-white'
+                        }`}
+                      >
+                        <span>{opt.label}</span>
+                        {isActive && <CheckIcon />}
+                      </button>
+
+                      {isCustom && isActive && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden"
                         >
-                          <span className="flex items-center gap-2">{opt.label}</span>
-                          {isActive && <Icon.Check />}
-                        </button>
-
-                        {/* Inline date pickers for Custom */}
-                        {isCustom && isActive && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="flex items-end gap-2 px-2 pb-2 pt-1">
-                              <label className="flex flex-col gap-1 text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">
-                                From
-                                <input
-                                  type="date"
-                                  value={custom.from || ''}
-                                  max={custom.to || undefined}
-                                  onChange={(e) =>
-                                    onCustomChange?.({ ...custom, from: e.target.value })
-                                  }
-                                  className="h-8 w-[7.5rem] rounded-lg border border-white/10 bg-white/[0.03] px-2 text-xs text-slate-100 outline-none focus:border-gold-400/60"
-                                />
-                              </label>
-                              <label className="flex flex-col gap-1 text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">
-                                To
-                                <input
-                                  type="date"
-                                  value={custom.to || ''}
-                                  min={custom.from || undefined}
-                                  onChange={(e) =>
-                                    onCustomChange?.({ ...custom, to: e.target.value })
-                                  }
-                                  className="h-8 w-[7.5rem] rounded-lg border border-white/10 bg-white/[0.03] px-2 text-xs text-slate-100 outline-none focus:border-gold-400/60"
-                                />
-                              </label>
-                            </div>
-                          </motion.div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
+                          <div className="flex flex-wrap items-end gap-2 px-2 pb-2 pt-1">
+                            <label className="flex flex-1 flex-col gap-1 text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">
+                              From
+                              <input
+                                type="date"
+                                value={custom.from || ''}
+                                max={custom.to || undefined}
+                                onChange={(e) =>
+                                  onCustomChange?.({ ...custom, from: e.target.value })
+                                }
+                                className="h-9 w-full rounded-lg border border-white/10 bg-white/[0.03] px-2 text-xs text-slate-100 outline-none focus:border-emerald-400/60"
+                              />
+                            </label>
+                            <label className="flex flex-1 flex-col gap-1 text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">
+                              To
+                              <input
+                                type="date"
+                                value={custom.to || ''}
+                                min={custom.from || undefined}
+                                onChange={(e) =>
+                                  onCustomChange?.({ ...custom, to: e.target.value })
+                                }
+                                className="h-9 w-full rounded-lg border border-white/10 bg-white/[0.03] px-2 text-xs text-slate-100 outline-none focus:border-emerald-400/60"
+                              />
+                            </label>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
           </motion.div>
         )}
       </AnimatePresence>

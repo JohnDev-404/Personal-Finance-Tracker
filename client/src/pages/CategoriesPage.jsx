@@ -620,7 +620,7 @@ export default function CategoriesPage() {
                 className="h-1.5 w-1.5 rounded-full bg-gold-400"
                 animate={{ opacity: [1, 0.4, 1] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-                style={{ boxShadow: '0 0 10px 2px rgba(232,194,86,0.6)' }}
+                
               />
               <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-gold-300/80">
                 Money Map
@@ -644,7 +644,7 @@ export default function CategoriesPage() {
             <button
               type="button"
               onClick={openCreate}
-              className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-gold-400 to-gold-500 px-4 py-2.5 text-sm font-semibold text-ink-950 shadow-[0_8px_30px_-10px_rgba(232,194,86,0.6)] transition hover:from-gold-300 hover:to-gold-400 active:scale-[0.98]"
+              className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-gold-400 to-gold-500 px-4 py-2.5 text-sm font-semibold text-ink-950  transition hover:from-gold-300 hover:to-gold-400 active:scale-[0.98]"
             >
               <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/60 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
               <Icon.Plus className="relative" />
@@ -777,7 +777,7 @@ export default function CategoriesPage() {
               action={
                 <button
                   onClick={openCreate}
-                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-gold-400 to-gold-500 px-4 py-2 text-sm font-semibold text-ink-950 shadow-[0_8px_30px_-10px_rgba(232,194,86,0.6)] transition hover:from-gold-300 hover:to-gold-400 active:scale-[0.98]"
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-gold-400 to-gold-500 px-4 py-2 text-sm font-semibold text-ink-950 shadow-[0_4px_14px_-6px_rgba(0,0,0,0.5)] transition hover:from-gold-300 hover:to-gold-400 active:scale-[0.98]"
                 >
                   <Icon.Plus /> New category
                 </button>

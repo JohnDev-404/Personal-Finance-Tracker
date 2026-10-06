@@ -752,7 +752,7 @@ export default function TransactionsPage() {
               onClick={openCreate}
               disabled={noCategories}
               title={noCategories ? 'Create a category first' : 'New transaction (N)'}
-              className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-gold-400 to-gold-500 px-4 py-2.5 text-sm font-semibold text-ink-950 shadow-[0_8px_30px_-10px_rgba(232,194,86,0.6)] transition hover:from-gold-300 hover:to-gold-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+              className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-gold-400 to-gold-500 px-4 py-2.5 text-sm font-semibold text-ink-950 shadow-[0_4px_14px_-6px_rgba(0,0,0,0.5)] transition hover:from-gold-300 hover:to-gold-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
             >
               <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/60 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
               <Icon.Plus className="relative" />

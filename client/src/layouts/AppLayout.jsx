@@ -193,43 +193,22 @@ function useNow(interval = 60000) {
 }
 
 /* ================================================================== */
-/*  BRAND                                                              */
+/*  BRAND — FinTrack                                                   */
 /* ================================================================== */
+
+import BrandLogo from '../components/BrandLogo';
 
 function Brand({ collapsed = false, onClick }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`group flex items-center gap-2.5 rounded-xl p-1.5 transition-colors ${
+      className={`group flex items-center rounded-xl p-1.5 transition-colors ${
         onClick ? 'hover:bg-white/[0.04]' : 'cursor-default'
       }`}
+      aria-label="FinTrack"
     >
-      <span className="relative grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-gold-300 via-gold-400 to-gold-500 shadow-[0_8px_24px_-8px_rgba(232,194,86,0.7)]">
-        <span className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-inset ring-white/25" />
-        <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-          <path d="M3 13.5 7 9l3 3 6-6.5" stroke="#0b1a14" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
-          <circle cx="16" cy="5.5" r="1.6" fill="#0b1a14" />
-        </svg>
-      </span>
-      <AnimatePresence initial={false}>
-        {!collapsed && (
-          <motion.span
-            initial={{ opacity: 0, x: -6 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -6 }}
-            transition={{ duration: 0.16 }}
-            className="flex flex-col items-start leading-none"
-          >
-            <span className="font-display text-[15px] font-bold tracking-tight text-white">
-              Ledgerly
-            </span>
-            <span className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-gold-300/70">
-              Finance Suite
-            </span>
-          </motion.span>
-        )}
-      </AnimatePresence>
+      <BrandLogo size={36} showText={!collapsed} />
     </button>
   );
 }
@@ -265,7 +244,7 @@ function NavItem({ item, collapsed, onNavigate, showShortcut }) {
           {isActive && (
             <motion.span
               layoutId="nav-active-rail"
-              className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-gold-400 shadow-[0_0_10px_2px_rgba(232,194,86,0.55)]"
+              className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-gold-400"
               transition={{ type: 'spring', stiffness: 420, damping: 34 }}
             />
           )}

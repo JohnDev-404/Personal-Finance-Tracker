@@ -18,7 +18,6 @@ import FullPageSpinner from '../components/FullPageSpinner';
 /*  HOOKS                                                              */
 /* ================================================================== */
 
-/** Smoothly animates a number from its previous value to the next. */
 function useCountUp(value, duration = 900) {
   const target = Number(value) || 0;
   const [display, setDisplay] = useState(0);
@@ -45,7 +44,6 @@ function useCountUp(value, duration = 900) {
   return display;
 }
 
-/** Ticking clock, isolated so it never re-renders the page. */
 function LiveClock({ className = '' }) {
   const [now, setNow] = useState(() => new Date());
 
@@ -67,26 +65,26 @@ function LiveClock({ className = '' }) {
   );
 }
 
-/** Tiny toast controller. */
 function useToast(timeout = 2400) {
   const [message, setMessage] = useState(null);
   const timer = useRef(null);
-
-  const flash = useCallback(
-    (msg, tone = 'success') => {
-      setMessage({ text: msg, tone });
-      clearTimeout(timer.current);
-      timer.current = setTimeout(() => setMessage(null), timeout);
-    },
-    [timeout]
-  );
 
   const dismiss = useCallback(() => {
     clearTimeout(timer.current);
     setMessage(null);
   }, []);
 
+  const flash = useCallback(
+    (msg, tone = 'success') => {
+      setMessage({ text: String(msg), tone });
+      clearTimeout(timer.current);
+      timer.current = setTimeout(() => setMessage(null), timeout);
+    },
+    [timeout]
+  );
+
   useEffect(() => () => clearTimeout(timer.current), []);
+
   return { message, flash, dismiss };
 }
 
@@ -166,7 +164,7 @@ function MiniStat({ label, value, sub, ring, delay = 0 }) {
 /*  3D SCENE                                                           */
 /* ================================================================== */
 
-function Coin({ position = [0, 0, 0], scale = 1, spin = 0.6, tint = '#e8c256' }) {
+function Coin({ position = [0, 0, 0], scale = 1, spin = 0.6, tint = '#c9a227' }) {
   const group = useRef();
 
   useFrame((_, delta) => {
@@ -181,38 +179,35 @@ function Coin({ position = [0, 0, 0], scale = 1, spin = 0.6, tint = '#e8c256' })
           <meshStandardMaterial
             color={tint}
             metalness={1}
-            roughness={0.22}
-            envMapIntensity={1.5}
+            roughness={0.32}
+            envMapIntensity={0.75}
           />
         </mesh>
-
         <mesh rotation={[Math.PI / 2, 0, 0]}>
           <torusGeometry args={[1, 0.085, 12, 96]} />
-          <meshStandardMaterial color="#c9a227" metalness={1} roughness={0.4} />
+          <meshStandardMaterial color="#8a6a1f" metalness={1} roughness={0.45} envMapIntensity={0.6} />
         </mesh>
-
         <mesh>
           <torusGeometry args={[0.98, 0.06, 16, 88]} />
-          <meshStandardMaterial color="#d4af37" metalness={1} roughness={0.14} />
+          <meshStandardMaterial color="#a58525" metalness={1} roughness={0.22} envMapIntensity={0.7} />
         </mesh>
-
         <mesh position={[0, 0, 0.085]}>
           <ringGeometry args={[0.56, 0.74, 64]} />
-          <meshStandardMaterial color="#b8912a" metalness={1} roughness={0.32} />
+          <meshStandardMaterial color="#7c5a15" metalness={1} roughness={0.4} envMapIntensity={0.5} />
         </mesh>
         <mesh position={[0, 0, -0.085]} rotation={[0, Math.PI, 0]}>
           <ringGeometry args={[0.56, 0.74, 64]} />
-          <meshStandardMaterial color="#b8912a" metalness={1} roughness={0.32} />
+          <meshStandardMaterial color="#7c5a15" metalness={1} roughness={0.4} envMapIntensity={0.5} />
         </mesh>
-
         <mesh position={[0, 0, 0.088]}>
           <circleGeometry args={[0.42, 48]} />
           <meshStandardMaterial
-            color="#f2d885"
+            color="#b8912a"
             metalness={1}
-            roughness={0.18}
-            emissive="#7c5e12"
-            emissiveIntensity={0.18}
+            roughness={0.28}
+            emissive="#5c3f0a"
+            emissiveIntensity={0.25}
+            envMapIntensity={0.6}
           />
         </mesh>
       </group>
@@ -220,7 +215,6 @@ function Coin({ position = [0, 0, 0], scale = 1, spin = 0.6, tint = '#e8c256' })
   );
 }
 
-/** Slow-drifting gold dust for depth. */
 function Sparkles({ count = 46 }) {
   const points = useRef();
 
@@ -247,9 +241,9 @@ function Sparkles({ count = 46 }) {
       </bufferGeometry>
       <pointsMaterial
         size={0.055}
-        color="#f0d98a"
+        color="#c9a96a"
         transparent
-        opacity={0.75}
+        opacity={0.6}
         sizeAttenuation
         depthWrite={false}
       />
@@ -257,7 +251,6 @@ function Sparkles({ count = 46 }) {
   );
 }
 
-/** Mouse-parallax rig — gives the scene a premium, responsive feel. */
 function Rig({ children, intensity = 1 }) {
   const ref = useRef();
 
@@ -283,24 +276,24 @@ function CoinScene({ className = '' }) {
         camera={{ position: [0, 0, 6.5], fov: 42 }}
         gl={{ alpha: true, antialias: true }}
       >
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[4, 6, 6]} intensity={2.4} color="#fff3d0" />
-        <pointLight position={[-5, -2, -4]} intensity={26} color="#10b981" />
-        <pointLight position={[3, -3, 3]} intensity={12} color="#e8c256" />
+        <ambientLight intensity={0.16} />
+        <directionalLight position={[4, 6, 6]} intensity={0.9} color="#c9a96a" />
+        <pointLight position={[-5, -2, -4]} intensity={10} color="#059669" />
+        <pointLight position={[3, -3, 3]} intensity={5} color="#b8860b" />
 
         <Suspense fallback={null}>
           <Rig intensity={reduced ? 0 : 1}>
             <Coin position={[-1.4, 0.25, 0]} scale={1.05} spin={0.7} />
-            <Coin position={[1.35, -0.35, -1.1]} scale={0.8} spin={1.1} tint="#dfe6ee" />
+            <Coin position={[1.35, -0.35, -1.1]} scale={0.8} spin={1.1} tint="#a89040" />
             <Coin position={[0.4, 1.15, -2.2]} scale={0.55} spin={0.5} />
             {!reduced && <Sparkles count={46} />}
           </Rig>
-          <Environment preset="city" />
+          <Environment preset="night" />
         </Suspense>
 
         <ContactShadows
           position={[0, -2, 0]}
-          opacity={0.4}
+          opacity={0.5}
           scale={12}
           blur={2.6}
           far={4}
@@ -317,23 +310,19 @@ function CoinScene({ className = '' }) {
 export default function DashboardPage() {
   const { user } = useAuth();
 
-  /* ---------------- period state (new) ---------------- */
   const [period, setPeriod] = useState('month');
   const [custom, setCustom] = useState({ from: '', to: '' });
 
-  /* computeRange now receives custom range too */
   const range = useMemo(() => computeRange(period, custom), [period, custom]);
-
   const { data, loading, error } = useDashboard(range);
-  const { message, flash } = useToast();
 
-  /* ---------------- derived numbers ---------------- */
+  const { message, flash, dismiss } = useToast();
+
   const totals = data?.totals ?? { income: 0, expense: 0, net: 0 };
   const netPositive = totals.net >= 0;
 
   const dayCount = useMemo(() => {
     if (!range?.from || !range?.to) {
-      // "All time" — fall back to however many months the API returned
       return data?.byMonth?.length ? data.byMonth.length * 30 : 1;
     }
     const ms = new Date(range.to) - new Date(range.from);
@@ -344,12 +333,11 @@ export default function DashboardPage() {
   const dailySpend = totals.expense / dayCount;
   const dailyNet = totals.net / dayCount;
 
-  /* ---------------- animated counters ---------------- */
   const income = useCountUp(totals.income);
   const expense = useCountUp(totals.expense);
   const net = useCountUp(totals.net);
 
-  /* ---------------- actions ---------------- */
+  /* ---------------- CSV export ---------------- */
   const handleExport = useCallback(() => {
     const items = data?.recentTransactions;
     if (!Array.isArray(items) || items.length === 0) {
@@ -358,29 +346,42 @@ export default function DashboardPage() {
     }
 
     try {
-      const keys = Object.keys(items[0]);
+      const rows = items.filter((it) => it && typeof it === 'object');
+      if (rows.length === 0) {
+        flash('Nothing to export for this period', 'warn');
+        return;
+      }
+
+      const keys = Object.keys(rows[0]);
       const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
       const csv = [
         keys.join(','),
-        ...items.map((row) => keys.map((k) => esc(row[k])).join(',')),
+        ...rows.map((row) => keys.map((k) => esc(row[k])).join(',')),
       ].join('\n');
 
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
+
       const a = document.createElement('a');
       a.href = url;
       a.download = `transactions-${period}-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.style.display = 'none';
       document.body.appendChild(a);
       a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
 
-      flash(`Exported ${items.length} transactions`);
-    } catch {
+      setTimeout(() => {
+        a.remove();
+        URL.revokeObjectURL(url);
+      }, 500);
+
+      flash(`Exported ${rows.length} transactions`);
+    } catch (err) {
+      console.error('[export] failed:', err);
       flash('Export failed — try again', 'warn');
     }
   }, [data, period, flash]);
 
+  /* ---------------- copy summary ---------------- */
   const handleCopySummary = useCallback(async () => {
     const lines = [
       `Summary — ${range?.label || period}`,
@@ -391,8 +392,20 @@ export default function DashboardPage() {
     ].join('\n');
 
     try {
-      await navigator.clipboard.writeText(lines);
-      flash('Summary copied to clipboard');
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(lines);
+        flash('Summary copied to clipboard');
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = lines;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+        flash('Summary copied to clipboard');
+      }
     } catch {
       flash('Clipboard unavailable', 'warn');
     }
@@ -415,7 +428,6 @@ export default function DashboardPage() {
     return () => window.removeEventListener('keydown', onKey);
   }, [handleExport, handleCopySummary]);
 
-  /* ---------------- loading / error states ---------------- */
   if (loading && !data) {
     return <FullPageSpinner label="Loading dashboard…" />;
   }
@@ -424,9 +436,9 @@ export default function DashboardPage() {
     <div className="relative min-h-full">
       {/* ================= AMBIENT BACKGROUND ================= */}
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-40 -left-32 h-[30rem] w-[30rem] rounded-full bg-emerald-500/15 blur-[130px]" />
-        <div className="absolute -top-24 right-0 h-[24rem] w-[24rem] rounded-full bg-gold-500/10 blur-[120px]" />
-        <div className="absolute -bottom-40 left-1/3 h-[26rem] w-[26rem] rounded-full bg-emerald-500/10 blur-[120px]" />
+        <div className="absolute -top-40 -left-32 h-[30rem] w-[30rem] rounded-full bg-emerald-500/12 blur-[130px]" />
+        <div className="absolute -top-24 right-0 h-[24rem] w-[24rem] rounded-full bg-emerald-500/[0.06] blur-[120px]" />
+        <div className="absolute -bottom-40 left-1/3 h-[26rem] w-[26rem] rounded-full bg-emerald-500/[0.08] blur-[120px]" />
         <div
           className="absolute inset-0 opacity-[0.14]"
           style={{
@@ -447,34 +459,31 @@ export default function DashboardPage() {
           transition={{ duration: 0.5, ease: 'easeOut' }}
           className="relative overflow-hidden rounded-2xl p-px"
         >
-          {/* Rotating conic border */}
           <motion.div
             aria-hidden
             className="absolute -inset-[160%]"
             style={{
               background:
-                'conic-gradient(from 0deg, transparent 0deg, rgba(232,194,86,0.65) 35deg, transparent 95deg, transparent 210deg, rgba(16,185,129,0.55) 275deg, transparent 335deg)',
+                'conic-gradient(from 0deg, transparent 0deg, rgba(52,211,153,0.55) 35deg, transparent 95deg, transparent 210deg, rgba(16,185,129,0.5) 275deg, transparent 335deg)',
             }}
             animate={{ rotate: 360 }}
             transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
           />
 
-          <div className="relative overflow-hidden rounded-[15px] bg-gradient-to-br from-[#07120e]/95 via-[#060a09]/95 to-[#0a0d0c]/95 p-6 backdrop-blur-xl sm:p-7">
+          <div className="relative overflow-hidden rounded-[15px] bg-gradient-to-br from-[#07120e]/95 via-[#060a09]/95 to-[#0a0d0c]/95 p-5 backdrop-blur-xl sm:p-6 lg:p-7">
             <div className="pointer-events-none absolute -top-32 -left-20 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-32 right-0 h-64 w-64 rounded-full bg-gold-500/10 blur-3xl" />
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold-300/50 to-transparent" />
+            <div className="pointer-events-none absolute -bottom-32 right-0 h-64 w-64 rounded-full bg-emerald-500/[0.07] blur-3xl" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-300/50 to-transparent" />
 
             <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-              {/* --- Left: identity --- */}
               <div className="max-w-xl">
                 <div className="flex items-center gap-2">
                   <motion.span
-                    className="h-1.5 w-1.5 rounded-full bg-gold-400"
+                    className="h-1.5 w-1.5 rounded-full bg-emerald-400"
                     animate={{ opacity: [1, 0.35, 1], scale: [1, 0.85, 1] }}
                     transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-                    style={{ boxShadow: '0 0 10px 2px rgba(232,194,86,0.6)' }}
                   />
-                  <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-gold-300/80">
+                  <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-emerald-300/80">
                     Portfolio
                   </span>
                   <span className="ml-1 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-emerald-300">
@@ -500,7 +509,6 @@ export default function DashboardPage() {
                   )}
                 </div>
 
-                {/* Headline net figure */}
                 <div className="mt-6 flex items-end gap-4">
                   <div>
                     <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-500">
@@ -539,7 +547,6 @@ export default function DashboardPage() {
                   </span>
                 </div>
 
-                {/* Action row */}
                 <div className="mt-5 flex flex-wrap items-center gap-2">
                   <button
                     type="button"
@@ -564,18 +571,10 @@ export default function DashboardPage() {
                   <button
                     type="button"
                     onClick={handleCopySummary}
-                    className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-3.5 py-2 text-xs font-medium text-slate-200 transition-all hover:border-gold-400/40 hover:bg-gold-400/10 hover:text-white active:scale-[0.98]"
+                    className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-3.5 py-2 text-xs font-medium text-slate-200 transition-all hover:border-emerald-400/40 hover:bg-emerald-400/10 hover:text-white active:scale-[0.98]"
                   >
                     <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden>
-                      <rect
-                        x="4.5"
-                        y="4.5"
-                        width="8"
-                        height="8"
-                        rx="1.6"
-                        stroke="currentColor"
-                        strokeWidth="1.4"
-                      />
+                      <rect x="4.5" y="4.5" width="8" height="8" rx="1.6" stroke="currentColor" strokeWidth="1.4" />
                       <path
                         d="M9.5 4.5v-1a1.5 1.5 0 0 0-1.5-1.5H3a1.5 1.5 0 0 0-1.5 1.5V8A1.5 1.5 0 0 0 3 9.5h1"
                         stroke="currentColor"
@@ -592,7 +591,7 @@ export default function DashboardPage() {
               </div>
 
               {/* --- Right: period controls --- */}
-              <div className="relative z-20 flex shrink-0 items-center gap-2">
+              <div className="relative z-20 w-full lg:w-auto">
                 <PeriodSelector
                   value={period}
                   onChange={setPeriod}
@@ -603,8 +602,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* 3D coins */}
-          <CoinScene className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/2 opacity-95 lg:block" />
+          <CoinScene className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/2 opacity-90 lg:block" />
         </motion.div>
 
         <ErrorBanner message={error} />
@@ -646,20 +644,8 @@ export default function DashboardPage() {
         {/* ================= SUMMARY CARDS ================= */}
         <div className="grid gap-4 sm:grid-cols-3">
           {[
-            {
-              label: 'Income',
-              value: income,
-              tone: 'income',
-              hint: 'Total money in',
-              delay: 0.1,
-            },
-            {
-              label: 'Expenses',
-              value: expense,
-              tone: 'expense',
-              hint: 'Total money out',
-              delay: 0.15,
-            },
+            { label: 'Income', value: income, tone: 'income', hint: 'Total money in', delay: 0.1 },
+            { label: 'Expenses', value: expense, tone: 'expense', hint: 'Total money out', delay: 0.15 },
             {
               label: 'Net',
               value: net,
@@ -699,7 +685,7 @@ export default function DashboardPage() {
             <div className="pointer-events-none absolute -top-24 -right-16 h-48 w-48 rounded-full bg-emerald-400/10 blur-2xl" />
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_1px_rgba(52,211,153,0.6)]" />
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                 <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">
                   Monthly flow
                 </span>
@@ -715,12 +701,12 @@ export default function DashboardPage() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.3 }}
-            className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-colors hover:border-gold-400/25"
+            className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-colors hover:border-emerald-400/25"
           >
-            <div className="pointer-events-none absolute -top-24 -right-16 h-48 w-48 rounded-full bg-gold-400/10 blur-2xl" />
+            <div className="pointer-events-none absolute -top-24 -right-16 h-48 w-48 rounded-full bg-emerald-400/10 blur-2xl" />
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-gold-400 shadow-[0_0_8px_1px_rgba(232,194,86,0.6)]" />
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                 <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">
                   By category
                 </span>
@@ -768,7 +754,7 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.96 }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2"
+            className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 px-4"
             role="status"
             aria-live="polite"
           >
@@ -781,9 +767,7 @@ export default function DashboardPage() {
             >
               <span
                 className={`h-1.5 w-1.5 rounded-full ${
-                  message.tone === 'warn'
-                    ? 'bg-amber-400 shadow-[0_0_8px_2px_rgba(251,191,36,0.6)]'
-                    : 'bg-emerald-400 shadow-[0_0_8px_2px_rgba(52,211,153,0.6)]'
+                  message.tone === 'warn' ? 'bg-amber-400' : 'bg-emerald-400'
                 }`}
               />
               <span className="text-xs font-medium text-slate-200">{message.text}</span>
